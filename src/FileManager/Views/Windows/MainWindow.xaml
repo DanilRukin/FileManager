@@ -1,0 +1,126 @@
+﻿<Window x:Class="FileManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FileManager"
+        xmlns:cv="clr-namespace:FileManager.Infrastructure.Converters"
+        mc:Ignorable="d"
+        Title="{Binding Title}" Height="450" Width="800"
+        DataContext="{Binding MainWindowModel, Source={StaticResource Locator}}">
+    <Window.Resources>
+        <Style TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="CanUserSortColumns" Value="False"/>
+            <Setter Property="AlternatingRowBackground" Value="Aquamarine"/>
+            <Setter Property="VerticalGridLinesBrush" Value="BlueViolet"/>
+            <Setter Property="GridLinesVisibility" Value="Vertical"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Close" Command="{StaticResource CloseWindowCommand}"/>
+            </MenuItem>
+            <MenuItem Header="Help"/>
+        </Menu>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem Content="{Binding Status}"/>
+        </StatusBar>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="400"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Column="0">
+                <StackPanel DockPanel.Dock="Top" Margin="5">
+                    <TextBlock Text="Выберите папку с файлами"/>
+                    <DockPanel Margin="0,5">
+                        <TextBox DockPanel.Dock="Left" Width="270" Text="{Binding SelectedFolder, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Button HorizontalAlignment="Right" DockPanel.Dock="Right" Content="Обзор" Margin="0,0,0,0" Width="120" Command="{Binding ChooseFolderCommand}"/>
+                    </DockPanel>
+                    <GroupBox Header="Манипуляции с файлами">
+                        <StackPanel Orientation="Horizontal" Margin="0,5">
+                            <StackPanel>
+                                <RadioButton Content="Переименовать" IsChecked="{Binding RenameOnly}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox Content="Ограничить до" IsChecked="{Binding Limit}"/>
+                                    <TextBox Text="{Binding LimitLength, UpdateSourceTrigger=PropertyChanged, Converter={cv:IntToStringConverter}}" Width="25" Margin="5,0" IsEnabled="{Binding Limit}"/>
+                                    <TextBlock Text="символов"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,5,0,0">
+                                    <RadioButton Content="Использовать встроенный транслятор" IsChecked="{Binding UseDefaultTranslator}"/>
+                                    <RadioButton Content="Загрузить из файла" Margin="0,5,0,0" IsChecked="{Binding UseTranslatorFromFile}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBox Text="{Binding PathToTranslateFile, UpdateSourceTrigger=PropertyChanged}" Width="180" IsEnabled="{Binding UseTranslatorFromFile}"/>
+                                        <Button Command="{Binding ChooseFileWithTranslateTableCommand}" Content="Обзор" Margin="5,0,0,0" Width="45"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Margin="5,0">
+                                <RadioButton Content="Сохранить регистр" IsChecked="{Binding SaveRegister}"/>
+                                <RadioButton Content="Не сохранять регистр" IsChecked="{Binding ChangeRegister}"/>
+                                <StackPanel Margin="15,0,0,0">
+                                    <RadioButton Content="Верхний" IsChecked="{Binding UpperCase}" IsEnabled="{Binding ChangeRegister}"/>
+                                    <RadioButton Content="Нижний" IsChecked="{Binding LowerCase}" IsEnabled="{Binding ChangeRegister}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5">
+                        <Button Content="Применить ко всем" Margin="5, 0" Command="{Binding ApplyToAllCommand}"/>
+                        <Button Content="Применить к выбранному" Command="{Binding ApplyToSelectedCommand}"/>
+                    </StackPanel>
+                    <TextBlock Text="Лог операций"/>
+                </StackPanel>
+                <ListBox Margin="5" ItemsSource="{Binding LogMessages}" SelectionMode="Extended" Background="Honeydew"></ListBox>
+            </DockPanel>
+            <GridSplitter Grid.Column="1" Width="3" VerticalAlignment="Stretch" HorizontalAlignment="Center" Background="BlueViolet"/>
+            <DockPanel Grid.Column="2" Margin="5">
+                <StackPanel DockPanel.Dock="Top" Margin="0,5">
+                    <TextBlock DockPanel.Dock="Top" Text="Таблица файлов"/>
+                    <UniformGrid Margin="0,5" Rows="1">
+                        <UniformGrid.Resources>
+                            <Style TargetType="Button">
+                                <Setter Property="Margin" Value="5"/>
+                            </Style>
+                        </UniformGrid.Resources>
+                        <Button Content="Загрузить" Command="{Binding LoadDataCommand}"/>
+                        <Button Content="Очистить" Command="{Binding ClearTableCommand}"/>
+                    </UniformGrid>
+                </StackPanel>
+                <GroupBox DockPanel.Dock="Bottom" Header="Атрибуты выбранного файла">
+                    <UniformGrid Columns="2">
+                        <CheckBox Content="Архивный" IsEnabled="False" IsChecked="{Binding Archived}"/>
+                        <CheckBox Content="Сжатый" IsEnabled="False" IsChecked="{Binding Compressed}"/>
+                        <CheckBox Content="Зашифрован" IsEnabled="False" IsChecked="{Binding Encrypted}"/>
+                        <CheckBox Content="Скрытый" IsEnabled="False" IsChecked="{Binding Hidden}"/>
+                        <CheckBox Content="Поддерживает целостность данных" IsEnabled="False" IsChecked="{Binding IntegrityStream}"/>
+                        <CheckBox Content="Нормальный" IsEnabled="False" IsChecked="{Binding Normal}"/>
+                        <CheckBox Content="Исключен из проверки целостности данных" IsEnabled="False" IsChecked="{Binding NoScrubData}"/>
+                        <CheckBox Content="В автономном режиме" IsEnabled="False" IsChecked="{Binding Offline}"/>
+                        <CheckBox Content="Только для чтения" IsEnabled="False" IsChecked="{Binding ReadOnly}"/>
+                        <CheckBox Content="Разреженный" IsEnabled="False" IsChecked="{Binding SparseFile}"/>
+                        <CheckBox Content="Системный" IsEnabled="False" IsChecked="{Binding System}"/>
+                        <CheckBox Content="Временный" IsEnabled="False" IsChecked="{Binding Temporary}"/>
+                    </UniformGrid>
+                </GroupBox>
+                <StackPanel DockPanel.Dock="Bottom" Margin="3" Orientation="Horizontal">
+                    <TextBlock Text="Всего файлов: "/>
+                    <TextBlock Text="{Binding FilesTable.Count}"/>
+                </StackPanel>
+                <DataGrid ItemsSource="{Binding FilesTable}" SelectedItem="{Binding SelectedFile}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Имя файла" Width="130" Binding="{Binding Name}"/>
+                        <DataGridTextColumn Header="Расположение" Width="*" Binding="{Binding Location}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+            </DockPanel>
+        </Grid>
+
+    </DockPanel>
+</Window>
